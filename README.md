@@ -1,6 +1,10 @@
 # Rumoro TypeScript SDK
 
-Social listening for developers and AI agents, typed. [Rumoro](https://rumoro.dev) watches the places people talk about your product, your competitors and your topics, and scores every mention for relevance, sentiment and intent. This package is the official TypeScript client for its API. It has one function per endpoint, generated from the OpenAPI document, with request and response types included. It needs Node 22+ and has no runtime dependencies. Use it on a server: the API does not answer browsers from other sites (no CORS), so a key never ends up in a web page.
+[![npm](https://img.shields.io/npm/v/@rumoro-dev/sdk?label=npm)](https://www.npmjs.com/package/@rumoro-dev/sdk)
+[![license](https://img.shields.io/npm/l/@rumoro-dev/sdk)](./LICENSE)
+[![docs](https://img.shields.io/badge/docs-docs.rumoro.dev-blue)](https://docs.rumoro.dev/sdks/typescript)
+
+Social listening for developers and AI agents, typed. [Rumoro](https://rumoro.dev) watches Reddit, X, Hacker News, GitHub, Bluesky, LinkedIn, Stack Overflow, DEV, YouTube, TikTok, Instagram and news for your product, your competitors and your topics, and scores every mention for relevance, sentiment and intent. This package is the official TypeScript client for its API. It has one function per endpoint, generated from the OpenAPI document, with request and response types included. It needs Node 22+ and has no runtime dependencies. Use it on a server: the API does not answer browsers from other sites (no CORS), so a key never ends up in a web page.
 
 ## Installation
 
