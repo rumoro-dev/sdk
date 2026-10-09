@@ -3,10 +3,13 @@
   "version": "0.1.2",
   "description": "TypeScript SDK for the Rumoro API, generated from its OpenAPI document.",
   "license": "MIT",
-  "homepage": "https://docs.rumoro.dev",
+  "homepage": "https://docs.rumoro.dev/sdks/typescript",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rumoro-dev/sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rumoro-dev/sdk/issues"
   },
   "keywords": [
     "rumoro",
