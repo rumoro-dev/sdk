@@ -4,25 +4,29 @@
 [![license](https://img.shields.io/npm/l/@rumoro-dev/sdk)](./LICENSE)
 [![docs](https://img.shields.io/badge/docs-docs.rumoro.dev-blue)](https://docs.rumoro.dev/sdks/typescript)
 
-Social listening for developers and AI agents, typed. [Rumoro](https://rumoro.dev) watches Reddit, X, Hacker News, GitHub, Bluesky, LinkedIn, Stack Overflow, DEV, YouTube, TikTok, Instagram and news for your product, your competitors and your topics, and scores every mention for relevance, sentiment and intent. This package is the official TypeScript client for its API. It has one function per endpoint, generated from the OpenAPI document, with request and response types included. It needs Node 22+ and has no runtime dependencies. Use it on a server: the API does not answer browsers from other sites (no CORS), so a key never ends up in a web page.
+Typed access to [Rumoro](https://rumoro.dev), the social listening API for developers and AI agents. Rumoro picks up posts about your product, your competitors and your market on Reddit, X, Hacker News, GitHub, Bluesky, LinkedIn, Stack Overflow, DEV, YouTube, TikTok, Instagram and news, and rates each for relevance, sentiment and intent.
 
-## Installation
+The SDK is generated from Rumoro's OpenAPI document: every endpoint is a function, and every request and response is typed. It runs on Node 22 or later with no runtime dependencies. Keep it on the server side; the API doesn't accept cross-origin browser requests, which keeps your key out of web pages.
+
+## Install
 
 ```bash
 npm install @rumoro-dev/sdk
 ```
 
-## Quick start
+You need an API key (it starts with `ref_`). Create one on the API keys page of the dashboard, or with `POST /v1/api-keys`. New accounts come with $5.80 of credit and don't need a card.
+
+## First request
 
 ```ts
 import { createRumoro } from '@rumoro-dev/sdk';
 
 const rumoro = createRumoro({ apiKey: process.env.RUMORO_API_KEY! });
 
-// Track a keyword on two platforms.
-await rumoro.createKeyword({ body: { term: 'acme cloud', kind: 'brand', platforms: ['hackernews', 'x'] } });
+// Start tracking a product name on Hacker News and X.
+await rumoro.createKeyword({ body: { term: 'driftwood deploy', kind: 'brand', platforms: ['hackernews', 'x'] } });
 
-// Read what arrived, relevant posts only, newest first.
+// Fetch the latest relevant mentions.
 const { data, error } = await rumoro.searchMentions({
   query: { platform: 'hackernews', relevant: true, limit: 25 },
 });
@@ -33,26 +37,24 @@ for (const mention of data.data) {
 }
 ```
 
-Create an API key in the dashboard (API keys) or with `POST /v1/api-keys`. Keys start with `ref_`. Every account starts with $5.80 of credit, and no card is needed.
-
-## Configuration
+## Client options
 
 ```ts
 const rumoro = createRumoro({
   apiKey: 'ref_...',                     // required
-  baseUrl: 'https://api.rumoro.dev',     // another deployment's host, if you run one
-  fetch: customFetch,                    // tests, or a runtime without a global fetch
-  headers: { 'x-request-id': 'my-id' },  // sent on every request; the id comes back on the response
+  baseUrl: 'https://api.rumoro.dev',     // only if you run your own deployment
+  fetch: customFetch,                    // for tests, or runtimes without a global fetch
+  headers: { 'x-request-id': 'my-id' },  // added to every request; the id is echoed back
 });
 ```
 
-Every call resolves to `{ data, error, request, response }` and never throws on a non-2xx status. Pass `throwOnError: true` on a call to get `data` directly, with an exception on failure:
+Calls don't throw on HTTP errors by default. Each one resolves to `{ data, error, request, response }`. If you'd rather get the data directly and catch failures as exceptions, add `throwOnError: true`:
 
 ```ts
 const { data: keyword } = await rumoro.getKeyword({ path: { id: 'kw_...' }, throwOnError: true });
 ```
 
-`rumoro.client` is the underlying client, for interceptors and raw requests:
+For interceptors or raw requests, use the underlying client at `rumoro.client`:
 
 ```ts
 rumoro.client.interceptors.response.use((response) => {
@@ -61,15 +63,15 @@ rumoro.client.interceptors.response.use((response) => {
 });
 ```
 
-## Examples
+## Recipes
 
-### Page through every mention of the last week
+### Fetch a week of mentions, page by page
 
 ```ts
 let cursor: string | undefined;
 do {
   const { data } = await rumoro.searchMentions({
-    query: { since: '2026-09-26T00:00:00Z', relevant: true, limit: 100, cursor },
+    query: { since: '2026-10-02T00:00:00Z', relevant: true, limit: 100, cursor },
     throwOnError: true,
   });
   for (const mention of data.data) console.log(mention.post.url);
@@ -77,25 +79,25 @@ do {
 } while (cursor);
 ```
 
-### Filter by intent and sentiment
+### Buying signals from accounts with reach
 
 ```ts
 const { data } = await rumoro.searchMentions({
-  query: { intent: 'buy_intent', sentiment: 'negative', minFollowers: 1000, sort: 'priority' },
+  query: { intent: 'buy_intent', minFollowers: 1000, sort: 'priority' },
   throwOnError: true,
 });
 ```
 
-The intents are `buy_intent`, `question`, `complaint`, `praise` and `comparison`, and topic tags such as `bug_report` and `pricing` filter the same way. `sort: 'priority'` puts fresh, relevant, high-reach posts first.
+Besides the intents (`buy_intent`, `question`, `complaint`, `praise`, `comparison`), topic tags like `bug_report` and `pricing` work as filters too. With `sort: 'priority'`, recent, relevant posts from people with reach come first.
 
-### Triage
+### Close or dismiss mentions
 
 ```ts
-await rumoro.updateMention({ path: { id: 'mm_...' }, body: { status: 'done', note: 'replied 2026-10-03' } });
+await rumoro.updateMention({ path: { id: 'mm_...' }, body: { status: 'done', note: 'answered in the thread' } });
 await rumoro.updateMention({ path: { id: 'mm_...' }, body: { status: 'ignored' } });
 ```
 
-### An instant Slack alert for buying signals
+### Send purchase intent to Slack as it happens
 
 ```ts
 const { data: channels } = await rumoro.listChannels({ throwOnError: true });
@@ -103,7 +105,7 @@ const slack = channels.data.find((c) => c.kind === 'slack');
 
 await rumoro.createAlert({
   body: {
-    name: 'Buying signals',
+    name: 'Purchase intent',
     mode: 'instant',
     filter: { intents: ['buy_intent'], minRelevance: 40 },
     channelIds: slack ? [slack.id] : [],
@@ -112,57 +114,57 @@ await rumoro.createAlert({
 });
 ```
 
-Create Slack, Telegram, email and webhook channels with `createChannel`. `testAlert` sends a sample, and `runAlertDigest` sends a digest alert's latest window now.
+`createChannel` adds Slack, Telegram, email and webhook channels. `testAlert` delivers a sample, and `runAlertDigest` sends a digest alert's current window immediately.
 
-### Analytics
+### Reports
 
 ```ts
 const { data: summary } = await rumoro.getAnalyticsSummary({
-  query: { range: '30d', compare: true, timezone: 'Europe/Berlin' },
+  query: { range: '30d', compare: true, timezone: 'Europe/Vienna' },
   throwOnError: true,
 });
 const { data: byPlatform } = await rumoro.getAnalyticsBreakdown({ query: { range: '30d', by: 'platform' }, throwOnError: true });
 const { data: sov } = await rumoro.getShareOfVoice({ query: { range: '90d' }, throwOnError: true });
 ```
 
-### People
+### Tag influential authors
 
 ```ts
 const { data: people } = await rumoro.listPeople({ query: { platforms: ['x'], minFollowers: 5000 }, throwOnError: true });
 await rumoro.updatePerson({ path: { id: people.data[0].id }, body: { tags: ['influencer'], muted: false } });
 ```
 
-### CSV export
+### Export to CSV
 
 ```ts
-const { data: csv } = await rumoro.exportMentionsCsv({ query: { since: '2026-09-01T00:00:00Z' }, throwOnError: true });
+const { data: csv } = await rumoro.exportMentionsCsv({ query: { since: '2026-10-01T00:00:00Z' }, throwOnError: true });
 ```
 
-## Error handling
+## Errors
 
-A non-2xx response comes back as `error` with a stable code, the message, and the request id to quote to support:
+When a request fails, `error` holds a stable `code`, a readable `message` and a `requestId` you can send to support:
 
 ```ts
-const { error } = await rumoro.createKeyword({ body: { term: 'acme', kind: 'brand' } });
+const { error } = await rumoro.createKeyword({ body: { term: 'driftwood', kind: 'brand' } });
 if (error) {
   switch (error.error.code) {
-    case 'duplicate_keyword':      // already tracked
-    case 'insufficient_balance':   // top up from Billing
-    case 'keyword_limit_reached':  // a workspace tracks up to 500 keywords
-    case 'rate_limited':           // Retry-After is on the response
+    case 'duplicate_keyword':      // this term is already tracked
+    case 'insufficient_balance':   // add funds on the Billing page
+    case 'keyword_limit_reached':  // the workspace already runs 500 keywords
+    case 'rate_limited':           // wait for the Retry-After header
     default:
       console.error(error.error.code, error.error.message, error.error.requestId);
   }
 }
 ```
 
-Common codes: `unauthorized`, `forbidden`, `read_only_key`, `validation_error`, `not_found`, `invalid_cursor`, `rate_limited`, `duplicate_keyword`, `insufficient_balance`, `keyword_limit_reached`, `upstream_unavailable`, `internal_error`. The [OpenAPI document](https://api.rumoro.dev/v1/openapi.json) lists every operation's responses.
+Codes you're most likely to see: `unauthorized`, `forbidden`, `read_only_key`, `validation_error`, `not_found`, `invalid_cursor`, `rate_limited`, `duplicate_keyword`, `insufficient_balance`, `keyword_limit_reached`, `upstream_unavailable`, `internal_error`. The [OpenAPI document](https://api.rumoro.dev/v1/openapi.json) documents every operation's responses.
 
-## SDK reference
+## Function index
 
-There is one function per operation, named after its `operationId` in the [OpenAPI document](https://api.rumoro.dev/v1/openapi.json).
+Each operation in the [OpenAPI document](https://api.rumoro.dev/v1/openapi.json) is a function named after its `operationId`.
 
-| Resource | Functions |
+| Area | Functions |
 | --- | --- |
 | Keywords | `createKeyword`, `listKeywords`, `getKeyword`, `updateKeyword`, `deleteKeyword`, `getKeywordHealth` |
 | Groups | `listGroups`, `createGroup`, `getGroup`, `updateGroup`, `deleteGroup` |
@@ -181,28 +183,21 @@ There is one function per operation, named after its `operationId` in the [OpenA
 | API keys | `createApiKey`, `listApiKeys`, `revokeApiKey` |
 | System | `whoami`, `getHealth` |
 
-Lists return `{ data, nextCursor }` (cursor lists) or `{ data, total }` (offset lists). Timestamps are ISO 8601 strings, and timestamp inputs accept ISO 8601 or epoch milliseconds.
+Lists come back either as `{ data, nextCursor }` or as `{ data, total }`. Dates are ISO 8601 strings; inputs also take epoch milliseconds.
 
-## MCP server
+## Prefer MCP?
 
-The same API is available to MCP clients as tools, with no SDK at all. In Claude Code:
+Agents can use the same operations as MCP tools, with no SDK. In Claude Code:
 
 ```bash
 claude mcp add --transport http rumoro https://mcp.rumoro.dev/mcp
 ```
 
-## Requirements
+## Good to know
 
-- Node 22+, on a server
-- A Rumoro API key
-
-## Links
-
-- [Documentation](https://docs.rumoro.dev)
-- [OpenAPI document](https://api.rumoro.dev/v1/openapi.json)
-- [Dashboard](https://app.rumoro.dev)
-
-Regenerate from a checkout with `npm run generate` in `packages/sdk`.
+- Requires Node 22 or later, used server-side, and a Rumoro API key.
+- To regenerate from a Rumoro checkout, run `npm run generate` in `packages/sdk`.
+- [Docs](https://docs.rumoro.dev) · [OpenAPI document](https://api.rumoro.dev/v1/openapi.json) · [Dashboard](https://app.rumoro.dev)
 
 ## License
 
