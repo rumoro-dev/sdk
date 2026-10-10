@@ -103,7 +103,7 @@ export type Keyword = {
      */
     reviewSources: Array<ReviewSource>;
     /**
-     * Up to 300 characters the classifier reads for this keyword only, in addition to the company profile or the group's description. Say what the term means for you and what to ignore, for example "Driftwood is our deploy tool, not beach wood." Null clears it.
+     * Up to 300 characters the classifier reads for this keyword only, in addition to the company profile or the group's description. Say what the term means for you and what to ignore, for example "Basil is our deploy tool, not the herb." Null clears it.
      */
     context: string | null;
     /**
@@ -292,7 +292,7 @@ export type KeywordSuggestion = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
         /**
-         * Up to 300 characters the classifier reads for this keyword only, in addition to the company profile or the group's description. Say what the term means for you and what to ignore, for example "Driftwood is our deploy tool, not beach wood." Null clears it.
+         * Up to 300 characters the classifier reads for this keyword only, in addition to the company profile or the group's description. Say what the term means for you and what to ignore, for example "Basil is our deploy tool, not the herb." Null clears it.
          */
         context?: string | null;
         /**
@@ -3703,7 +3703,7 @@ export type ListKeywordsResponses = {
              */
             reviewSources: Array<ReviewSource>;
             /**
-             * Up to 300 characters the classifier reads for this keyword only, in addition to the company profile or the group's description. Say what the term means for you and what to ignore, for example "Driftwood is our deploy tool, not beach wood." Null clears it.
+             * Up to 300 characters the classifier reads for this keyword only, in addition to the company profile or the group's description. Say what the term means for you and what to ignore, for example "Basil is our deploy tool, not the herb." Null clears it.
              */
             context: string | null;
             /**
@@ -3861,7 +3861,7 @@ export type CreateKeywordData = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
         /**
-         * Up to 300 characters the classifier reads for this keyword only, in addition to the company profile or the group's description. Say what the term means for you and what to ignore, for example "Driftwood is our deploy tool, not beach wood." Null clears it.
+         * Up to 300 characters the classifier reads for this keyword only, in addition to the company profile or the group's description. Say what the term means for you and what to ignore, for example "Basil is our deploy tool, not the herb." Null clears it.
          */
         context?: string | null;
         /**
@@ -4045,7 +4045,7 @@ export type UpdateKeywordData = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
         /**
-         * Up to 300 characters the classifier reads for this keyword only, in addition to the company profile or the group's description. Say what the term means for you and what to ignore, for example "Driftwood is our deploy tool, not beach wood." Null clears it.
+         * Up to 300 characters the classifier reads for this keyword only, in addition to the company profile or the group's description. Say what the term means for you and what to ignore, for example "Basil is our deploy tool, not the herb." Null clears it.
          */
         context?: string | null;
         /**
